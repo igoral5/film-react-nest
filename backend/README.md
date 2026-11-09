@@ -32,6 +32,22 @@
 $ npm install
 ```
 
+## Настройка окружения
+
+Скопируйте `.env.example` в `.env` и при необходимости измените параметры подключения к MongoDB:
+
+```bash
+$ cp .env.example .env
+```
+
+## Заполнение базы данных
+
+Загружает фильмы из `test/mongodb_initial_stub.json` в MongoDB, указанную в `DATABASE_URL`:
+
+```bash
+$ npm run seed
+```
+
 ## Running the app
 
 ```bash
