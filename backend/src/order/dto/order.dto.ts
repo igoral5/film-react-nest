@@ -13,7 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-const PHONE_PATTERN = /^\+7\d{10}$/;
+const PHONE_PATTERN = /^\+?(?:\(\d+\)[\d\s-]*|\d[\d\s-]*(?:\(\d+\))?[\d\s-]*)$/;
 
 export class TicketDto {
   @IsString()
@@ -47,7 +47,7 @@ export class CreateOrderDto {
 
   @IsString()
   @Matches(PHONE_PATTERN, {
-    message: 'phone must be +7 followed by 10 digits',
+    message: 'phone must be a valid phone number',
   })
   phone: string;
 
