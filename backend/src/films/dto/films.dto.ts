@@ -1,14 +1,47 @@
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsISO8601,
+  IsInt,
+  IsNumber,
+  IsString,
+  IsUUID,
+  Matches,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+
 import { FilmEntity, ScheduleEntity } from '../../repository/films.schema';
 
+const SEAT_LABEL = /^\d+:\d+$/;
+
 export class FilmDto {
+  @IsUUID()
   id: string;
+
+  @IsNumber()
   rating: number;
+
+  @IsString()
   director: string;
+
+  @IsArray()
+  @IsString({ each: true })
   tags: string[];
+
+  @IsString()
   image: string;
+
+  @IsString()
   cover: string;
+
+  @IsString()
   title: string;
+
+  @IsString()
   about: string;
+
+  @IsString()
   description: string;
 
   constructor(film: FilmEntity) {
@@ -25,12 +58,29 @@ export class FilmDto {
 }
 
 export class ScheduleDto {
+  @IsUUID()
   id: string;
+
+  @IsISO8601()
   daytime: string;
+
+  @IsNumber()
   hall: number;
+
+  @IsInt()
+  @Min(1)
   rows: number;
+
+  @IsInt()
+  @Min(1)
   seats: number;
+
+  @IsNumber()
+  @Min(0)
   price: number;
+
+  @IsArray()
+  @Matches(SEAT_LABEL, { each: true })
   taken: string[];
 
   constructor(schedule: ScheduleEntity) {
@@ -45,7 +95,13 @@ export class ScheduleDto {
 }
 
 export class FilmsDto {
+  @IsNumber()
+  @Min(0)
   total: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FilmDto)
   items: FilmDto[];
 
   constructor(films: FilmEntity[]) {
@@ -55,7 +111,13 @@ export class FilmsDto {
 }
 
 export class FilmScheduleDto {
+  @IsNumber()
+  @Min(0)
   total: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleDto)
   items: ScheduleDto[];
 
   constructor(schedule: ScheduleEntity[]) {
