@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
+  IsUUID,
   Matches,
   Min,
   ValidateNested,
@@ -16,12 +17,10 @@ import {
 const PHONE_PATTERN = /^\+?(?:\(\d+\)[\d\s-]*|\d[\d\s-]*(?:\(\d+\))?[\d\s-]*)$/;
 
 export class TicketDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   film: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   session: string;
 
   @IsString()

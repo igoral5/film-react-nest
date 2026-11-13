@@ -8,8 +8,10 @@ export const configProvider: Provider = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService): AppConfig => ({
     database: {
-      driver: configService.get<string>('DATABASE_DRIVER'),
+      driver: configService.get<'postgres'>('DATABASE_DRIVER'),
       url: configService.get<string>('DATABASE_URL'),
+      username: configService.get<string>('DATABASE_USERNAME') || undefined,
+      password: configService.get<string>('DATABASE_PASSWORD') || undefined,
     },
   }),
 };
@@ -19,6 +21,8 @@ export interface AppConfig {
 }
 
 export interface AppConfigDatabase {
-  driver: string;
+  driver: 'postgres';
   url: string;
+  username: string;
+  password: string;
 }

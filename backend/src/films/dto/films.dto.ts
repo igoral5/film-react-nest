@@ -11,7 +11,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { FilmEntity, ScheduleEntity } from '../../repository/films.schema';
+import { FilmEntity } from '../../repository/entities/film.entity';
+import { ScheduleEntity } from '../../repository/entities/schedule.entity';
 
 const SEAT_LABEL = /^\d+:\d+$/;
 
