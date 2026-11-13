@@ -31,7 +31,8 @@ export class ScheduleEntity {
 
   @Column({ type: 'text', transformer: arrayTransformer })
   taken: string[];
-
+  
+  // Поле добавлено для возможности обращения к нему schedule.filmId !== filmId
   @Column({ name: 'filmId', type: 'uuid', nullable: true })
   filmId: string;
 
