@@ -22,7 +22,7 @@ export class FilmsRepository {
   ) {}
 
   findAll(): Promise<FilmEntity[]> {
-    return this.filmRepository.find();
+    return this.filmRepository.find({ order: { id: 'ASC' } });
   }
 
   async findSchedule(filmId: string): Promise<ScheduleEntity[] | null> {
@@ -82,12 +82,7 @@ export class FilmsRepository {
 
         schedule.taken.push(seatLabel);
       }
-
-      for (const schedule of schedules) {
-        await manager.update(ScheduleEntity, schedule.id, {
-          taken: schedule.taken,
-        });
-      }
+      await manager.save(schedules);
     });
   }
 }
