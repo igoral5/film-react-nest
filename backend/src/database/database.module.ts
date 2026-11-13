@@ -1,14 +1,31 @@
 import { Global, Module } from '@nestjs/common';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
-import { configProvider } from '../app.config.provider';
 import {
-  DATABASE_CONNECTION,
-  databaseConnectionProvider,
-} from './database.provider';
+  AppConfig,
+  CONFIG_TOKEN,
+  configProvider,
+} from '../app.config.provider';
+import { FilmEntity } from '../repository/entities/film.entity';
+import { ScheduleEntity } from '../repository/entities/schedule.entity';
 
 @Global()
 @Module({
-  providers: [configProvider, databaseConnectionProvider],
-  exports: [DATABASE_CONNECTION],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      inject: [CONFIG_TOKEN],
+      useFactory: (config: AppConfig): TypeOrmModuleOptions => ({
+        type: config.database.driver,
+        url: config.database.url,
+        username: config.database.username,
+        password: config.database.password,
+        entities: [FilmEntity, ScheduleEntity],
+        synchronize: false,
+      }),
+    }),
+    TypeOrmModule.forFeature([FilmEntity, ScheduleEntity]),
+  ],
+  providers: [configProvider],
+  exports: [TypeOrmModule, configProvider],
 })
 export class DatabaseModule {}

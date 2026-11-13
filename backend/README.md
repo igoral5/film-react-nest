@@ -34,18 +34,27 @@ $ npm install
 
 ## Настройка окружения
 
-Скопируйте `.env.example` в `.env` и при необходимости измените параметры подключения к MongoDB:
+Скопируйте `.env.example` в `.env` и при необходимости измените параметры подключения к PostgreSQL:
 
 ```bash
 $ cp .env.example .env
 ```
 
-## Заполнение базы данных
+Параметры окружения:
 
-Загружает фильмы из `test/mongodb_initial_stub.json` в MongoDB, указанную в `DATABASE_URL`:
+* `DATABASE_DRIVER` — драйвер СУБД, для PostgreSQL — `postgres`;
+* `DATABASE_URL` — строка подключения к PostgreSQL, например `postgres://localhost:5432/films`;
+* `DATABASE_USERNAME` — имя пользователя PostgreSQL (можно не указывать при подключении через Unix-сокет);
+* `DATABASE_PASSWORD` — пароль пользователя PostgreSQL (можно не указывать при подключении через Unix-сокет).
+
+## Подготовка базы данных
+
+Схема и тестовые данные лежат в SQL-файлах в папке `test`:
 
 ```bash
-$ npm run seed
+$ psql -d films -f test/prac.init.sql
+$ psql -d films -f test/prac.films.sql
+$ psql -d films -f test/prac.shedules.sql
 ```
 
 ## Running the app
