@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      # временно, пока работа идёт в ветке review-3 (убрать после влития в main)
-      - review-3
   workflow_dispatch:
 
 permissions:
