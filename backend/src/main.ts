@@ -4,6 +4,7 @@ import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { createLogger } from './logger/logger.factory';
 
 const getConstraints = (errors: ValidationError[]): string[] =>
   errors.flatMap((error) => [
@@ -12,7 +13,9 @@ const getConstraints = (errors: ValidationError[]): string[] =>
   ]);
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // bufferLogs хранит ранние логи, пока не подключён наш логгер.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(createLogger());
   app.setGlobalPrefix('api/afisha');
   app.useGlobalPipes(
     new ValidationPipe({

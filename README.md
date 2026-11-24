@@ -1,36 +1,105 @@
 # FILM!
 
-## Установка
+Сервис по продаже билетов в кино.
 
-### MongoDB
+- `backend` — NestJS + TypeORM + PostgreSQL, документация API: `/api/docs`
+- `frontend` — React + Vite
+- `nginx` — раздача фронтенда и проксирование `/api/` и `/content/` в бэкенд
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
+## Деплой
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Приложение развёрнуто на сервере: **https://igoral.nomorepartiessite.ru**
+
+## Запуск локально в Docker
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+- приложение — http://localhost
+- pgAdmin — http://localhost:8080 (логин и пароль из `.env`)
+- подключение в pgAdmin: host `database`, port `5432`, база, пользователь и пароль из `.env`
+
+Таблицы и тестовые данные создаются автоматически при первом запуске контейнера с базой
+(скрипты из `backend/test` и `database/init.sql`).
+
+Остановить: `docker compose down`, удалить вместе с данными: `docker compose down -v`.
+
+## Разработка без Docker
 
 ### Бэкенд
 
-Перейдите в папку с исходным кодом бэкенда
+```bash
+cd backend
+npm ci
+cp .env.example .env      # укажите свой DATABASE_URL
+npm run start:debug
+```
 
-`cd backend`
+### Фронтенд
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+```bash
+cd frontend
+npm ci
+cp .env.example .env
+npm run dev
+```
 
-`npm ci` или `yarn install --frozen-lockfile`
+## Переменные окружения
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+Все переменные описаны в `.env.example`:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+| Переменная | Назначение |
+| --- | --- |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | параметры базы данных |
+| `DATABASE_DRIVER`, `DATABASE_URL` | подключение бэкенда к базе |
+| `NODE_ENV` | окружение бэкенда |
+| `LOGGER` | формат логов: `dev` (по умолчанию), `json`, `tskv` |
+| `PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD` | доступ в pgAdmin |
 
-MongoDB должна быть установлена и запущена.
+## Логирование
 
-Запустите бэкенд:
+В бэкенде три логгера:
 
-`npm start:debug`
+- `DevLogger` — цветной `ConsoleLogger` Nest для разработки;
+- `JsonLogger` — каждая запись в виде JSON-объекта;
+- `TskvLogger` — формат TSKV (поля через табуляцию).
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+Логгер выбирается переменной `LOGGER`. Если она не задана, используется `dev`,
+а при `NODE_ENV=production` — `json`.
 
+## Тесты и линт
 
+```bash
+cd backend
+npm test
+npm run lint
+```
 
+## Публикация образов
 
+GitHub Actions (`.github/workflows/docker-publish.yml`) при пуше в `main` собирает образы
+и публикует их в GitHub Container Registry:
+
+- `ghcr.io/igoral5/film-react-nest-backend:latest`
+- `ghcr.io/igoral5/film-react-nest-frontend:latest`
+- `ghcr.io/igoral5/film-react-nest-nginx:latest`
+
+## Обновление приложения на сервере
+
+В директории проекта на сервере (`~/film`) лежат `docker-compose.prod.yml`, `.env`,
+`database/init.sql`, `backend/test/*.sql` и `certbot/` с сертификатами.
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+pgAdmin наружу не открыт, доступ к нему через SSH-туннель:
+
+```bash
+ssh -L 8080:localhost:8080 igor@igoral.nomorepartiessite.ru
+```
+
+Дальше — http://localhost:8080.

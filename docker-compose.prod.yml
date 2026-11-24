@@ -1,0 +1,97 @@
+# Продакшен на сервере: образы берутся из GHCR, сборки нет.
+# Запуск: docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+
+services:
+  frontend:
+    image: ghcr.io/igoral5/film-react-nest-frontend:latest
+    container_name: film_frontend
+    restart: unless-stopped
+    networks:
+      - webnet
+    volumes:
+      - frontend_dist:/app/dist
+
+  backend:
+    image: ghcr.io/igoral5/film-react-nest-backend:latest
+    container_name: film_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - webnet
+
+  database:
+    image: postgres:16-alpine
+    container_name: film_database
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+      - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-tables.sql:ro
+      - ./backend/test/prac.films.sql:/docker-entrypoint-initdb.d/02-films.sql:ro
+      - ./backend/test/prac.shedules.sql:/docker-entrypoint-initdb.d/03-schedules.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - webnet
+
+  # Доступен только с самой машины: ssh -L 8080:localhost:8080 igor@igoral.nomorepartiessite.ru
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: film_pgadmin
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '127.0.0.1:8080:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - database
+    networks:
+      - webnet
+
+  nginx:
+    image: ghcr.io/igoral5/film-react-nest-nginx:latest
+    container_name: film_nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - frontend_dist:/var/www/frontend:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - webnet
+
+  # Продлевает сертификаты Let's Encrypt каждые 12 часов.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: film_certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done'
+    networks:
+      - webnet
+
+volumes:
+  frontend_dist:
+  pg_data:
+  pgadmin_data:
+
+networks:
+  webnet:
